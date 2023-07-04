@@ -242,7 +242,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const length = parseInt(typeParam);
   const eventType = getDefaultEvent("" + length);
 
-  const users = await prisma.user.findMany({
+  const usersWithoutAvatar = await prisma.user.findMany({
     where: {
       username: {
         in: usernameList,
@@ -254,7 +254,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       name: true,
       email: true,
       bio: true,
-      avatar: true,
       startTime: true,
       endTime: true,
       timeZone: true,
@@ -279,6 +278,11 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     },
   });
 
+  const users = usersWithoutAvatar.map((user) => ({
+    ...user,
+    avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
+  }));
+
   if (!users.length) {
     return {
       notFound: true,
@@ -286,9 +290,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   }
 
   // sort and be in the same order as usernameList so first user is the first user in the list
-  let sortedUsers: typeof users = [];
   if (users.length > 1) {
-    sortedUsers = users.sort((a, b) => {
+    users.sort((a, b) => {
       const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
       const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
       return aIndex - bIndex;
@@ -298,7 +301,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   let locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
 
   // Get the prefered location type from the first user
-  const firstUsersMetadata = userMetadataSchema.parse(sortedUsers[0].metadata || {});
+  const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata || {});
   const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
   if (preferedLocationType?.appSlug) {

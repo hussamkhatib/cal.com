@@ -288,6 +288,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (isDynamicGroup) {
     return {
+      props: null,
       redirect: {
         destination: `/${usernameList.join("+")}/${defaultEvents[0].slug}`,
       },
