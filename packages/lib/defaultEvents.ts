@@ -137,9 +137,10 @@ const min60Event = {
 
 const defaultEvents = [min15Event, min30Event, min60Event];
 
-export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
-  return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;
-};
+export const defaultEventsSelectOptions = defaultEvents.map((event) => ({
+  label: event.title,
+  value: event.slug,
+}));
 
 export const getDynamicEventName = (dynamicNames: string[], slug: string): string => {
   const lastUser = dynamicNames.pop();

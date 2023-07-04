@@ -1,10 +1,13 @@
+import { useRouter } from "next/router";
 import type { FC, ReactNode } from "react";
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
+import { defaultEventsSelectOptions } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { Select } from "@calcom/ui";
 import { Badge } from "@calcom/ui";
 import { CheckSquare, Clock } from "@calcom/ui/components/icon";
 
@@ -43,6 +46,7 @@ interface Props {
 }
 
 const BookingDescription: FC<Props> = (props) => {
+  const router = useRouter();
   const { profile, eventType, isBookingPage = false, children } = props;
   const { date: bookingDate } = useRouterQuery("date");
   const { t } = useLocale();
@@ -101,6 +105,28 @@ const BookingDescription: FC<Props> = (props) => {
               <EventTypeDescriptionSafeHTML eventType={eventType} />
             </div>
           </div>
+        )}
+        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+        {/* @ts-ignore */}
+        {eventType?.isDynamic && (
+          <Select
+            isSearchable={false}
+            defaultValue={{
+              label: eventType.title,
+              value: eventType.slug,
+            }}
+            onChange={(selectedOption) => {
+              if (!selectedOption) return;
+              router.push({
+                query: {
+                  ...router.query,
+                  type: selectedOption.value,
+                  duration: selectedOption.value,
+                },
+              });
+            }}
+            options={defaultEventsSelectOptions}
+          />
         )}
         {requiresConfirmation && (
           <div className={classNames("items-top flex", isBookingPage && "text-default text-sm font-medium")}>

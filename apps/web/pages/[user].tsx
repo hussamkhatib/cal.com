@@ -14,12 +14,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import defaultEvents, {
-  getDynamicEventDescription,
-  getGroupName,
-  getUsernameList,
-  getUsernameSlugLink,
-} from "@calcom/lib/defaultEvents";
+import defaultEvents, { getGroupName, getUsernameList, getUsernameSlugLink } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -289,6 +284,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  const isDynamicGroup = usersWithoutAvatar.length > 1;
+
+  if (isDynamicGroup) {
+    return {
+      redirect: {
+        destination: `/${usernameList.join("+")}/${defaultEvents[0].slug}`,
+      },
+    };
+  }
+
   const users = usersWithoutAvatar.map((user) => ({
     ...user,
     avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
@@ -301,7 +306,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true;
     };
   }
-  const isDynamicGroup = users.length > 1;
 
   if (isDynamicGroup) {
     // sort and be in the same order as usernameList so first user is the first user in the list
@@ -373,12 +377,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
-      eventTypes: isDynamicGroup
-        ? defaultEvents.map((event) => {
-            event.description = getDynamicEventDescription(dynamicUsernames, event.slug);
-            return event;
-          })
-        : eventTypes,
+      eventTypes,
       trpcState: ssr.dehydrate(),
       isDynamicGroup,
       dynamicNames,
